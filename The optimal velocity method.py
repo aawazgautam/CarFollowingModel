@@ -50,7 +50,7 @@ l_car= 15*dcon                    # m    It is the initial position of the truck
 """The total time frame considered is 5 min 40 seconds i.e 340 seconds"""
 T= 340 #seconds  Total time.
 
-""""For this simulation we calcualte values at every 0.5 seconds."""
+""""For this simulation we calcualte values at every 1 seconds."""
 del_T = 1 #sec
 
 # step 2: Import libraries.
@@ -75,17 +75,26 @@ N=int(T/del_T)
 lst=[1]*N
 time=np.array(lst,dtype='int')
 """Creating an array of the size(=no of points were kinematics of the system is calculated."""
-az= np.array(lst,dtype='float64')
+
+# Arrays of acceleration for truck, suv, sedan and car
+a_trk=np.array(lst,dtype='float64')
+a_suv=np.array(lst,dtype='float64')
+a_sed=np.array(lst,dtype='float64')
+a_car=np.array(lst,dtype='float64')
+
+# Arrays of velocity for truck, suv, sedan and car
 v_trk=np.array(lst,dtype='float64')
 v_suv=np.array(lst,dtype='float64')
 v_sed=np.array(lst,dtype='float64')
 v_car=np.array(lst,dtype='float64')
 
+# Arrays of position for truck, suv, sedan and car
 x_trk=np.array(lst,dtype='float64')
 x_suv=np.array(lst,dtype='float64')
 x_sed=np.array(lst,dtype='float64')
 x_car=np.array(lst,dtype='float64')
 
+# Arrays of netto distance for truck, suv, sedan and car
 s_suv=np.array(lst,dtype='float64')
 s_sed=np.array(lst,dtype='float64')
 s_car=np.array(lst,dtype='float64')
@@ -118,24 +127,32 @@ for i in r:
         v_trk[i+1] = v_trk[300] + 0.5*vcon*(300-i) # Given condition for deceleration of 40 seconds after initial 5 min
     
     x_trk[i+1] = x_trk[i] + (v_trk[i]+v_trk[i+1])/2*del_T             # Calculating the position of truck as the sum of previous position plus average velocity times time.
-        
+    
+    a_trk[i] =(v_trk[i+1]-v_trk[i]) / del_T
+    
     v_suv[i+1] = v_suv[i] + kai*del_T*(Vs(s_suv[i]) - v_suv[i])       # Calculating the velocity of SUV using OV function.
     
     x_suv[i+1] = x_suv[i] + (v_suv[i]+v_suv[i+1])/2*del_T             # Calculating the position of SUV.
     
     s_suv[i+1] = x_trk[i+1] - x_suv[i+1] - l_tr                       # Calculating netto distance from SUV to truck.   
     
+    a_suv[i] =(v_suv[i+1]-v_suv[i]) / del_T
+    
     v_sed[i+1] = v_sed[i] + kai*del_T*(Vs(s_sed[i]) - v_sed[i])       # Calculating the velocity of sedan.
     
     x_sed[i+1] = x_sed[i] + (v_sed[i]+v_sed[i+1])/2*del_T             # Calculating position of sedan.
     
     s_sed[i+1] = x_suv[i+1] - x_sed[i+1] - l_suv                      # Calculating netto distance from sedan to SUV
+     
+    a_sed[i] =(v_sed[i+1]-v_sed[i]) / del_T
     
     v_car[i+1] = v_car[i] + kai*del_T*(Vs(s_car[i]) - v_car[i])       # Calculating the velocity of car.
     
     x_car[i+1] = x_car[i] + (v_car[i]+v_car[i+1])/2*del_T             # Calculating position of car.
     
     s_car[i+1] = x_sed[i+1] - x_car[i+1] - l_sed                      # Calculating netto distance from car to sedan.
+     
+    a_car[i] =(v_car[i+1]-v_car[i]) / del_T
           
     lst[i+1]=i+2    # This variable is stored for the purpose of using it as time axis in graph.
 
@@ -149,6 +166,7 @@ c = pd.Series(x_sed)
 d = pd.Series(x_car)
 ## Creating pandas series of the time variable
 t = pd.Series(lst)
+
 """INPUT FOR PLOT OF POSITION VS TIME"""
 plt.plot(t,a, label = "Truck") 
 plt.plot(t,b, label = "SUV") 
@@ -166,9 +184,25 @@ plt.plot(t,pd.Series(v_suv) , label = "SUV")
 plt.plot(t,(pd.Series(v_sed) ), label = "Sedan") 
 plt.plot(t,(pd.Series(v_car) ), label = "Car") 
 plt.xlabel('Time (seconds)')
-plt.ylabel('Position (meter)')
-plt.title('Position - Time Relationship')
+plt.ylabel('Velocity (m/s)')
+plt.title('Velocity - Time Relationship')
 plt.legend() # legend upper left
 plt.show() # show the plot 
+
+
+"""INPUT FOR PLOT OF ACCELERATION VS TIME"""
+plt.plot(t,(pd.Series(a_trk) ), label = "Truck") 
+plt.plot(t,pd.Series(a_suv) , label = "SUV") 
+plt.plot(t,(pd.Series(a_sed) ), label = "Sedan") 
+plt.plot(t,(pd.Series(a_car) ), label = "Car") 
+plt.xlabel('Time (seconds)')
+plt.ylabel('Acceleration (m/s2)')
+plt.title('Acceleration - Time Relationship')
+plt.legend() # legend upper left
+plt.show() # show the plot 
+
+""" Creating the CSV files to export the datas of acceleration, velocity, time for the vehicles in the system"""
+df = pd.DataFrame({"Time" : lst,"acc_truck" : a_trk, "acc_suv" : a_suv, "acc_sedan" : a_sed, "acc_car" : a_car,"Time" : lst,"velo_truck" : v_trk, "velo_suv" : v_suv, "velo_sedan" : v_sed, "velo_car" : v_car,"Time" : lst,"Position_truck" : x_trk, "Position_suv" : x_suv, "Position_sedan" : x_sed, "Position_car" : x_car})
+df.to_csv("submission2.csv", index=False)
 
 
