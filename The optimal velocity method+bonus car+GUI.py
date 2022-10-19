@@ -206,7 +206,7 @@ df = pd.DataFrame({"Time" : lst,"acc_truck" : a_trk, "acc_suv" : a_suv, "acc_sed
 df.to_csv("submission.csv", index=False)
 
 ### Graphical User Interface###
-
+###There is some problem in the GUI below###
 import PySimpleGUI as sg
 
 sg.theme('LightBlue7') #keep things interesting for your user
